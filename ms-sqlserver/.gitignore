@@ -1,0 +1,11 @@
+**/*.bin
+**/*.mdf
+**/*.ldf
+**/*.ndf
+**/errorlog
+**/errorlog.*
+**/HkEngineEventFile*.*
+**/log*.*
+**/*.log
+**/system_health*.*
+**/machine-key
