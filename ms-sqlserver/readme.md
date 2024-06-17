@@ -20,7 +20,7 @@ docker-compose up -d
 
 to connect to it from the host using sql server management studio
 
-**server name:** `.,14333`
-**authentication:** `sql server authentication`
-**login:** `sa`
-**password:** `sample@Strong23Password`
+**server name:** `.,14333`  
+**authentication:** `sql server authentication`  
+**login:** `sa`  
+**password:** `sample@Strong23Password`  
