@@ -3,6 +3,11 @@ services:
   devsql:
     image: mcr.microsoft.com/mssql/server:2022-latest
     container_name: devsql
+    deploy:
+      resources:
+        limits:
+          cpus: '2.0'
+          memory: 4G
     environment:
       ACCEPT_EULA: "Y"
       MSSQL_SA_PASSWORD: "sample@Strong23Password"
