@@ -1,0 +1,34 @@
+version: '3'
+networks:
+  redis-net:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 10.20.0.0/24
+
+services:
+  redis-master:
+    image: redis:latest
+    container_name: redis-master
+    ports:
+      - "6379:6379"
+    command: redis-server /etc/redis/redis.conf
+    networks:
+      redis-net:
+        ipv4_address: 10.20.0.2
+    volumes:
+      - ./redis-master:/etc/redis
+
+  redis-slave:
+    image: redis:latest
+    container_name: redis-slave
+    ports:
+      - "6380:6379"
+    command: redis-server /etc/redis/redis.conf
+    volumes:
+      - ./redis-slave:/etc/redis
+    networks:
+      redis-net:
+        ipv4_address: 10.20.0.3
+    depends_on:
+      - redis-master
