@@ -1,0 +1,43 @@
+services:
+  sql-server:
+    image: postgres:latest
+    environment:
+      POSTGRES_DB: zabbix
+      POSTGRES_USER: zabbix
+      POSTGRES_PASSWORD: zabbix_password
+    volumes:
+      - sql_data:/var/lib/postgresql/data
+
+  zabbix-server:
+    image: zabbix/zabbix-server-pgsql:latest
+    environment:
+      DB_SERVER_HOST: sql-server
+      POSTGRES_DB: zabbix
+      POSTGRES_USER: zabbix
+      POSTGRES_PASSWORD: zabbix_password
+    links:
+      - sql-server
+    depends_on:
+      - sql-server
+    volumes:
+      - zabbix_server_data:/var/lib/zabbix
+
+  zabbix-web:
+    image: zabbix/zabbix-web-nginx-pgsql:latest
+    environment:
+      DB_SERVER_HOST: sql-server
+      POSTGRES_DB: zabbix
+      POSTGRES_USER: zabbix
+      POSTGRES_PASSWORD: zabbix_password
+      ZBX_SERVER_HOST: zabbix-server
+    depends_on:
+      - zabbix-server
+    links:
+      - sql-server
+      - zabbix-server
+    ports:
+      - "8080:8080"
+
+volumes:
+   sql_data:
+   zabbix_server_data:
