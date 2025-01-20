@@ -21,3 +21,18 @@ services:
       KAFKA_CONTROLLER_LISTENER_NAMES: CONTROLLER
       KAFKA_LOG_DIRS: /tmp/kraft-combined-logs
       CLUSTER_ID: MkU3OEVBNTcwNTJENDM2Qk
+  
+  kafka-ui:
+    image: provectuslabs/kafka-ui:latest
+    container_name: kafka-ui
+    ports:
+      - "8083:8080"
+    environment:
+      DYNAMIC_CONFIG_ENABLED: "true"
+    volumes:
+      - kafkaui:/etc/kafkaui/
+    depends_on:
+     - broker
+
+volumes:
+  kafkaui:
