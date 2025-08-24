@@ -1,0 +1,78 @@
+services:
+  # Load Balancer - NGINX
+  nginx-lb:
+    image: nginx:alpine
+    container_name: load-balancer
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+      - ./nginx/proxy_params.conf:/etc/nginx/proxy_params.conf:ro
+      - ./nginx/ssl:/etc/nginx/ssl:ro
+    depends_on:
+      - web-instance-1
+      - web-instance-2
+    networks:
+      load-balancer-net:
+        ipv4_address: 172.26.0.10
+    restart: unless-stopped
+  
+
+  # Web Instance 1
+  web-instance-1:
+    image: nginx:alpine
+    container_name: web-server-1
+    volumes:
+      - ./web1/html:/usr/share/nginx/html:ro
+      - ./web1/nginx.conf:/etc/nginx/nginx.conf:ro
+    networks:
+      load-balancer-net:
+        ipv4_address: 172.26.0.11
+    restart: unless-stopped
+
+  # Web Instance 2
+  web-instance-2:
+    image: nginx:alpine
+    container_name: web-server-2
+    volumes:
+      - ./web2/html:/usr/share/nginx/html:ro
+      - ./web2/nginx.conf:/etc/nginx/nginx.conf:ro
+    networks:
+      load-balancer-net:
+        ipv4_address: 172.26.0.12
+    restart: unless-stopped
+
+  # Health Check Service (Optional - for monitoring)
+  health-check:
+    image: curlimages/curl:latest
+    container_name: load-balancer-health
+    command: >
+      sh -c "
+      while true; do
+        echo '=== Health Check ===' 
+        echo 'Load Balancer Health:'
+        curl -f http://172.25.0.10/health || echo 'LB Health Check Failed'
+        echo 'web Instance 1:'
+        curl -f http://172.26.0.11/health || echo 'web 1 Health Check Failed'
+        echo 'web Instance 2:'
+        curl -f http://172.26.0.12/health || echo 'web 2 Health Check Failed'
+        echo 'Sleeping for 60 seconds...'
+        sleep 60
+      done"
+    depends_on:
+      - nginx-lb
+      - web-instance-1
+      - web-instance-2
+    networks:
+      load-balancer-net:
+        ipv4_address: 172.26.0.30
+    restart: unless-stopped
+
+networks:
+  load-balancer-net:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 172.26.0.0/16
+          gateway: 172.26.0.1
