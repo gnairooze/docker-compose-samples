@@ -11,6 +11,11 @@ services:
     ports:
       - "14333:1433"
     volumes:
-      - ./data:/var/opt/mssql/data
-      - ./log:/var/opt/mssql/log
-      - ./secrets:/var/opt/mssql/secrets
+      - mssqsl_data:/var/opt/mssql/data
+      - mssql_log:/var/opt/mssql/log
+      - mssql_secrets:/var/opt/mssql/secrets
+
+volumes:
+  mssql_data:
+  mssql_log:
+  mssql_secrets:
