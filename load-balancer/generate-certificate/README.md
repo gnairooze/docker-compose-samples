@@ -1,9 +1,10 @@
-# SSL Certificate Generator for *.dev.test
+# Certificate Generator Suite
 
-This directory contains two Python scripts for generating SSL certificates for local development:
+This directory contains Python scripts for generating different types of certificates for local development:
 
-1. **`generate_ssl_cert.py`** - Generates a simple self-signed certificate
-2. **`generate_ca_and_cert.py`** - Generates a CA certificate and server certificate (RECOMMENDED)
+1. **`generate_ssl_cert.py`** - Generates a simple self-signed SSL certificate
+2. **`generate_ca_and_cert.py`** - Generates a CA certificate and SSL server certificate (RECOMMENDED)
+3. **`generate_code_signing_cert.py`** - Generates a CA certificate and code signing certificate
 
 ## Recommended Approach: CA + Server Certificate
 
@@ -59,6 +60,18 @@ python generate_ssl_cert.py
 This will generate two files:
 - `dev.test.crt` - The SSL certificate
 - `dev.test.key` - The private key
+
+### Generate Code Signing Certificates
+
+```bash
+python generate_code_signing_cert.py
+```
+
+This will generate four files:
+- `code-signing-ca.crt` - The Code Signing CA certificate (import this into system trust store)
+- `code-signing-ca.key` - The CA private key (keep secure)
+- `code-signing.crt` - The code signing certificate (use for signing code)
+- `code-signing.key` - The code signing private key (use for signing code)
 
 ## Using with nginx
 
@@ -137,6 +150,43 @@ If you're getting "This is not a certificate authority certificate" error in Fir
 
 The CA certificate is what you import into your browser's trusted authorities. The server certificate is used by nginx/web servers.
 
-**Certificate Chain:**
+**Certificate Chains:**
+
+**SSL Certificates:**
 - `dev-test-ca.crt` → Certificate Authority (import into browser)
 - `dev.test.crt` → Server certificate signed by the CA (use with nginx)
+
+**Code Signing Certificates:**
+- `code-signing-ca.crt` → Code Signing CA (import into system trust store)
+- `code-signing.crt` → Code signing certificate (use to sign executables, scripts, etc.)
+
+## Code Signing Usage Examples
+
+After generating and importing the CA certificate, you can use the code signing certificate to sign various types of code:
+
+### PowerShell Scripts (Windows)
+```powershell
+# Sign a PowerShell script
+Set-AuthenticodeSignature -FilePath "script.ps1" -Certificate (Get-PfxCertificate "code-signing.crt")
+```
+
+### Executables with SignTool (Windows)
+```cmd
+# Sign an executable
+signtool sign /f "code-signing.crt" /p "" /t http://timestamp.digicert.com "executable.exe"
+```
+
+### Java JAR Files
+```bash
+# Convert certificate to PKCS#12 format first
+openssl pkcs12 -export -in code-signing.crt -inkey code-signing.key -out code-signing.p12
+
+# Sign JAR file
+jarsigner -keystore code-signing.p12 -storetype PKCS12 myapp.jar "1"
+```
+
+### macOS Applications
+```bash
+# Import certificate to keychain first, then sign
+codesign -s "Dev Code Signing Certificate" -v myapp.app
+```
