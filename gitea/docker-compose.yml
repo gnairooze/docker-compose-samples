@@ -1,10 +1,12 @@
+name: gitea-env
+
 networks:
   gitea:
     external: false
 
 services:
   server:
-    image: gitea/gitea:latest
+    image: gitea/gitea:1.24
     container_name: gitea
     environment:
       - USER_UID=1000
@@ -28,7 +30,8 @@ services:
       - db
 
   db:
-    image: postgres:latest
+    image: postgres:16
+    container_name: gitea-db
     restart: always
     environment:
       - POSTGRES_USER=gitea
