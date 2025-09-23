@@ -34,7 +34,7 @@ dotnet tool install --global dotnet-sonarscanner
 2. Run the following command to begin analysis:
 
     ```sh
-    dotnet sonarscanner begin /k:"sonar-project-name" /d:sonar.host.url="http://localhost:9000"  /d:sonar.token="sonar-token"
+    dotnet sonarscanner begin /k:"sonar-project-key" /d:sonar.host.url="http://localhost:9000"  /d:sonar.token="sonar-token"
     ```
 
 3. Build your project:
