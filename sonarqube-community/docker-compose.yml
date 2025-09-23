@@ -1,31 +1,60 @@
 services:
   sonarqube:
     image: sonarqube:25.9.0.112764-community
+    hostname: sonarqube
     container_name: sonarqube
+    read_only: true
     depends_on:
-      - db
+      db:
+        condition: service_healthy
     environment:
-      - SONAR_ES_BOOTSTRAP_CHECKS_DISABLE=true
-      - SONAR_JDBC_URL=jdbc:postgresql://db:5432/sonar
-      - SONAR_JDBC_USERNAME=sonarqube
-      - SONAR_JDBC_PASSWORD=P@ssw0rdP@ssw0rd
+      SONAR_JDBC_URL: jdbc:postgresql://db:5432/sonar
+      SONAR_JDBC_USERNAME: sonarqube
+      SONAR_JDBC_PASSWORD: P@ssw0rdP@ssw0rd
+    volumes:
+      - sonarqube_data:/opt/sonarqube/data
+      - sonarqube_extensions:/opt/sonarqube/extensions
+      - sonarqube_logs:/opt/sonarqube/logs
+      - sonarqube_temp:/opt/sonarqube/temp
     ports:
       - "9000:9000"
-    volumes:
-      - sonarqube_all:/opt/sonarqube/logs
-      - sonarqube_all:/opt/sonarqube/temp
-      - sonarqube_all:/opt/sonarqube/data
-      - sonarqube_all:/opt/sonarqube/extensions
-
+    networks:
+      - ${NETWORK_TYPE:-ipv4}
   db:
-      image: postgres:16
-      environment:
-        - POSTGRES_USER=sonarqube
-        - POSTGRES_PASSWORD=P@ssw0rdP@ssw0rd
-        - POSTGRES_DB=sonar
-      volumes:
-        - db_data:/var/lib/postgresql/data
+    image: postgres:17
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready -d $${POSTGRES_DB} -U $${POSTGRES_USER}" ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    hostname: postgresql
+    container_name: postgresql
+    environment:
+      POSTGRES_USER: sonarqube
+      POSTGRES_PASSWORD: P@ssw0rdP@ssw0rd
+      POSTGRES_DB: sonar
+    volumes:
+      - postgresql_data:/var/lib/postgresql/data
+    networks:
+      - ${NETWORK_TYPE:-ipv4}
 
 volumes:
-  sonarqube_all:
-  db_data:
+  sonarqube_data:
+  sonarqube_temp:
+  sonarqube_extensions:
+  sonarqube_logs:
+  postgresql_data:
+
+networks:
+  ipv4:
+    driver: bridge
+    enable_ipv6: false
+  dual:
+    driver: bridge
+    enable_ipv6: true
+    ipam:
+      config:
+        - subnet: "192.168.2.0/24"
+          gateway: "192.168.2.1"
+        - subnet: "2001:db8:2::/64"
+          gateway: "2001:db8:2::1"
